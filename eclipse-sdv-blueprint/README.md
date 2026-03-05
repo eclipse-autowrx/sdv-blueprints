@@ -38,5 +38,8 @@ It showcases how SDV applications are built in the cloud, pushed to a registry, 
 # Getting started
 
 ## Prerequisites
+1. For this blueprint ubuntu-cloud image is used on qemu. Theretically any other linux image should also work, but not tested.
+1. TBD Kiran
 
 ## Demo steps
+1. TBD Kiran
