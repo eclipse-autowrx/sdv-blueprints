@@ -100,11 +100,7 @@ if [ ! -d "$PROTO_DIR/kuksa/val/v1" ] || \
         exit 1
     fi
     tmp=$(mktemp -d)
-    git clone --depth=1 https://github.com/eclipse-kuksa/kuksa-databroker.git "$tmp" || {
-        echo "ERROR: git clone of kuksa-databroker failed"
-        rm -rf "$tmp"
-        exit 1
-    }
+  
     mkdir -p "$PROTO_DIR/kuksa/val/v1"
     cp -r "$tmp"/proto/kuksa/val/v1/* "$PROTO_DIR/kuksa/val/v1/" || {
         echo "ERROR: copying proto files failed"
