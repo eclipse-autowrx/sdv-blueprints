@@ -8,17 +8,33 @@ echo "Building da_connector for local machine..."
 # Compiler settings for native compilation
 CC="gcc"
 CXX="g++"
-CFLAGS="-O2 -fPIC -w"
-CXXFLAGS="-O2 -fPIC -w -std=c++17 -Ilocal/protogen"
+# include project root (.) so headers such as da_connector.h are found
+# use pkg-config to query grpc++ flags if available
+if command -v pkg-config >/dev/null 2>&1; then
+    GRPC_CFLAGS=$(pkg-config --cflags grpc++ 2>/dev/null || true)
+    GRPC_LIBS=$(pkg-config --libs grpc++ 2>/dev/null || true)
+else
+    GRPC_CFLAGS=""
+    GRPC_LIBS=""
+fi
+
+CFLAGS="-O2 -fPIC -w -I. $GRPC_CFLAGS"
+CXXFLAGS="-O2 -fPIC -w -std=c++17 -I. -Ilocal/protogen $GRPC_CFLAGS"
 LDFLAGS="-shared"
 
-# gRPC and protobuf libraries
-GRPC_LIBS="-lgrpc++ -lgrpc -lprotobuf -lpthread -ldl"
+# always link protobuf as well (pkg-config for grpc++ does not include it)
+GRPC_LIBS="$GRPC_LIBS -lprotobuf"
+
+# if pkg-config didn't yield any grpc libs at all, fall back to a minimal set
+if [ -z "$GRPC_LIBS" ]; then
+    GRPC_LIBS="-lgrpc++ -lgrpc -lgpr -lprotobuf -lpthread -ldl"
+fi
 
 # Source files
 C_SOURCES="da_connector.c"
 CPP_SOURCES="client.cpp"
-PROTOBUF_SOURCES="local/protogen/kuksa/val/v1/val.pb.cc local/protogen/kuksa/val/v1/val.grpc.pb.cc"
+# protobuf sources are discovered automatically in the protogen tree
+PROTOBUF_SOURCES=""
 MAIN_SOURCE="local/main.c"
 HEADERS="da_connector.h kuksa_bridge.h"
 
@@ -69,21 +85,67 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# Ensure we have protobuf definitions and generated sources
+PROTO_DIR="local/protos"
+GEN_DIR="local/protogen"
+
+# if proto directory is missing or empty, try to clone kuksa-databroker and copy
+if [ ! -d "$PROTO_DIR/kuksa/val/v1" ] || \
+   [ -z "$(ls -A $PROTO_DIR/kuksa/val/v1 2>/dev/null)" ]; then
+    echo "Proto definitions not found in $PROTO_DIR/kuksa/val/v1."
+    echo "Attempting to fetch from eclipse/kuksa-databroker repository..."
+    if ! command -v git >/dev/null 2>&1; then
+        echo "ERROR: git is required to clone protos but is not installed."
+        echo "Please install git or place the proto files manually."
+        exit 1
+    fi
+    tmp=$(mktemp -d)
+    git clone --depth=1 https://github.com/eclipse-kuksa/kuksa-databroker.git "$tmp" || {
+        echo "ERROR: git clone of kuksa-databroker failed"
+        rm -rf "$tmp"
+        exit 1
+    }
+    mkdir -p "$PROTO_DIR/kuksa/val/v1"
+    cp -r "$tmp"/proto/kuksa/val/v1/* "$PROTO_DIR/kuksa/val/v1/" || {
+        echo "ERROR: copying proto files failed"
+        rm -rf "$tmp"
+        exit 1
+    }
+    rm -rf "$tmp"
+    echo "Copied proto definitions into $PROTO_DIR/kuksa/val/v1."
+fi
+
+# regenerate C++ from every .proto file; this will create missing types.pb.*
+if [ -d "$PROTO_DIR/kuksa/val/v1" ]; then
+    echo "Generating C++ sources from protos in $PROTO_DIR/kuksa/val/v1..."
+    for proto in "$PROTO_DIR"/kuksa/val/v1/*.proto; do
+        [ -e "$proto" ] || continue
+        echo "  protoc processing $proto"
+        protoc -I"$PROTO_DIR" \
+               --cpp_out="$GEN_DIR" \
+               --grpc_out="$GEN_DIR" \
+               --plugin=protoc-gen-grpc=$(which grpc_cpp_plugin) \
+               "$proto" || {
+            echo "ERROR: protoc failed for $proto"
+            exit 1
+        }
+    done
+fi
+
 # Compile protobuf generated files
-echo "Compiling protobuf sources..."
-$CXX $CXXFLAGS -c -o $BUILD_DIR/val.pb.o local/protogen/kuksa/val/v1/val.pb.cc
-
-if [ $? -ne 0 ]; then
-    echo "ERROR: Protobuf compilation failed!"
-    exit 1
-fi
-
-$CXX $CXXFLAGS -c -o $BUILD_DIR/val.grpc.pb.o local/protogen/kuksa/val/v1/val.grpc.pb.cc
-
-if [ $? -ne 0 ]; then
-    echo "ERROR: Protobuf gRPC compilation failed!"
-    exit 1
-fi
+# Automatically build any .pb.cc files present in the protogen directory
+PROTO_DIR="local/protogen/kuksa/val/v1"
+echo "Compiling protobuf sources in $PROTO_DIR..."
+for src in "$PROTO_DIR"/*.pb.cc; do
+    [ -e "$src" ] || continue
+    obj="$BUILD_DIR/$(basename "$src" .cc).o"
+    echo "  $src -> $obj"
+    $CXX $CXXFLAGS -c -o "$obj" "$src"
+    if [ $? -ne 0 ]; then
+        echo "ERROR: Protobuf compilation failed for $src!"
+        exit 1
+    fi
+done
 
 # Compile C++ source to object file
 echo "Compiling C++ source: $CPP_SOURCES..."
@@ -104,7 +166,9 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Linking executable..."
-$CXX -o $EXE_OUTPUT $BUILD_DIR/main.o $BUILD_DIR/da_connector.o $BUILD_DIR/client.o $BUILD_DIR/val.pb.o $BUILD_DIR/val.grpc.pb.o $GRPC_LIBS
+# link every object in build directory; this covers generated protobuf objects too
+objs=$(ls $BUILD_DIR/*.o 2>/dev/null)
+$CXX -o $EXE_OUTPUT $objs $GRPC_LIBS
 
 # Check if compilation was successful
 if [ $? -eq 0 ]; then
