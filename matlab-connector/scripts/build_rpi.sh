@@ -1,24 +1,41 @@
 #!/bin/bash
 
-# Build script for local machine
-# Compiles da_connector.c natively
+# Build script for Raspberry Pi 5
+# Cross-compiles da_connector.c from WSL to ARM64 target
 
-echo "Building da_connector for local machine..."
+echo "Building da_connector for Raspberry Pi 5 (ARM64)..."
 
-# Compiler settings for native compilation
-CC="gcc"
-CXX="g++"
-CFLAGS="-O2 -fPIC -w"
-CXXFLAGS="-O2 -fPIC -w -std=c++17"
+# Check if ARM64 cross-compilers are installed
+ARM_CC="aarch64-linux-gnu-gcc"
+ARM_CXX="aarch64-linux-gnu-g++"
+
+if ! command -v $ARM_CC &> /dev/null || ! command -v $ARM_CXX &> /dev/null; then
+    echo "ARM64 cross-compiler not found!"
+    echo "Installing cross-compilation toolchain..."
+    sudo apt-get update
+    sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+    
+    if ! command -v $ARM_CC &> /dev/null || ! command -v $ARM_CXX &> /dev/null; then
+        echo "ERROR: Failed to install ARM64 cross-compiler."
+        echo "Please install manually: sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu"
+        exit 1
+    fi
+fi
+
+# Compiler settings for ARM64 target
+CC=$ARM_CC
+CXX=$ARM_CXX
+CFLAGS="-O2 -fPIC -march=armv8-a -w"
+CXXFLAGS="-O2 -fPIC -march=armv8-a -w -std=c++17"
 LDFLAGS="-shared"
 
-# gRPC and protobuf libraries
+# gRPC and protobuf libraries (adjust paths as needed for cross-compilation)
 GRPC_LIBS="-lgrpc++ -lgrpc -lprotobuf -lpthread -ldl"
 
 # Source files
 C_SOURCES="da_connector.c"
 CPP_SOURCES="client.cpp"
-MAIN_SOURCE="local/main.c"
+MAIN_SOURCE="main.c"
 HEADERS="da_connector.h kuksa_bridge.h"
 
 # Build directory
@@ -55,8 +72,8 @@ if [ ! -f "kuksa_bridge.h" ]; then
     exit 1
 fi
 
-if [ ! -f "local/main.c" ]; then
-    echo "ERROR: local/main.c not found!"
+if [ ! -f "main.c" ]; then
+    echo "ERROR: main.c not found!"
     exit 1
 fi
 
