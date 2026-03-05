@@ -91,23 +91,6 @@ GEN_DIR="local/protogen"
 
 
 
-# regenerate C++ from every .proto file; this will create missing types.pb.*
-if [ -d "$PROTO_DIR/kuksa/val/v1" ]; then
-    echo "Generating C++ sources from protos in $PROTO_DIR/kuksa/val/v1..."
-    for proto in "$PROTO_DIR"/kuksa/val/v1/*.proto; do
-        [ -e "$proto" ] || continue
-        echo "  protoc processing $proto"
-        protoc -I"$PROTO_DIR" \
-               --cpp_out="$GEN_DIR" \
-               --grpc_out="$GEN_DIR" \
-               --plugin=protoc-gen-grpc=$(which grpc_cpp_plugin) \
-               "$proto" || {
-            echo "ERROR: protoc failed for $proto"
-            exit 1
-        }
-    done
-fi
-
 # Compile protobuf generated files
 # Automatically build any .pb.cc files present in the protogen directory
 PROTO_DIR="local/protogen/kuksa/val/v1"
