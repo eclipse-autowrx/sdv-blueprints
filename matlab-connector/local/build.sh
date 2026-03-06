@@ -19,7 +19,7 @@ else
 fi
 
 CFLAGS="-O2 -fPIC -w -I. $GRPC_CFLAGS"
-CXXFLAGS="-O2 -fPIC -w -std=c++17 -I. -Ilocal/protogen $GRPC_CFLAGS"
+CXXFLAGS="-O2 -fPIC -w -std=c++17 -I. -Ilocal/protogen -Ilocal/protogen/kuksa/val/v1 $GRPC_CFLAGS"
 LDFLAGS="-shared"
 
 # always link protobuf as well (pkg-config for grpc++ does not include it)

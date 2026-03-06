@@ -18,7 +18,7 @@
 #ifndef GRPC_kuksa_2fval_2fv1_2ftypes_2eproto__INCLUDED
 #define GRPC_kuksa_2fval_2fv1_2ftypes_2eproto__INCLUDED
 
-#include "kuksa/val/v1/types.pb.h"
+#include "types.pb.h"
 
 #include <functional>
 #include <grpcpp/generic/async_generic_service.h>
@@ -39,13 +39,15 @@
 #include <grpcpp/support/stub_options.h>
 #include <grpcpp/support/sync_stream.h>
 
-namespace kuksa {
-namespace val {
-namespace v1 {
+namespace kuksa
+{
+  namespace val
+  {
+    namespace v1
+    {
 
-}  // namespace v1
-}  // namespace val
-}  // namespace kuksa
+    } // namespace v1
+  } // namespace val
+} // namespace kuksa
 
-
-#endif  // GRPC_kuksa_2fval_2fv1_2ftypes_2eproto__INCLUDED
+#endif // GRPC_kuksa_2fval_2fv1_2ftypes_2eproto__INCLUDED

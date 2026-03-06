@@ -3,22 +3,23 @@
 #include <string>
 
 #include <grpcpp/grpcpp.h>
-#include "kuksa/val/v1/val.grpc.pb.h"
+#include "val.grpc.pb.h"
 
 using namespace std;
 using grpc::Channel;
 using grpc::ClientContext;
 using grpc::Status;
 
-using kuksa::val::v1::VAL;
 using kuksa::val::v1::GetRequest;
 using kuksa::val::v1::GetResponse;
 using kuksa::val::v1::SetRequest;
 using kuksa::val::v1::SetResponse;
 using kuksa::val::v1::SubscribeRequest;
 using kuksa::val::v1::SubscribeResponse;
+using kuksa::val::v1::VAL;
 
-class KuksaClient {
+class KuksaClient
+{
 private:
     std::unique_ptr<VAL::Stub> stub_;
 
@@ -37,16 +38,19 @@ public:
 
         Status status = stub_->Get(&context, request, &response);
 
-        if (!status.ok()) {
+        if (!status.ok())
+        {
             std::cout << "Get RPC failed: " << status.error_message() << std::endl;
             return;
         }
 
-        for (const auto &e : response.entries()) {
+        for (const auto &e : response.entries())
+        {
 
             std::cout << e.path() << " = ";
 
-            if (e.has_value()) {
+            if (e.has_value())
+            {
 
                 const auto &v = e.value();
 
@@ -60,8 +64,9 @@ public:
                     std::cout << v.string();
                 else
                     std::cout << "Unknown";
-
-            } else {
+            }
+            else
+            {
                 std::cout << "NotAvailable";
             }
 
@@ -81,7 +86,8 @@ public:
 
         Status status = stub_->Set(&context, request, &response);
 
-        if (!status.ok()) {
+        if (!status.ok())
+        {
             std::cout << "Set RPC failed: " << status.error_message() << std::endl;
             return;
         }
@@ -103,15 +109,18 @@ public:
 
         std::cout << "Subscribed to " << path << std::endl;
 
-        while (reader->Read(&response)) {
+        while (reader->Read(&response))
+        {
 
-            for (const auto &update : response.updates()) {
+            for (const auto &update : response.updates())
+            {
 
                 const auto &entry = update.entry();
 
                 std::cout << entry.path() << " = ";
 
-                if (entry.has_value()) {
+                if (entry.has_value())
+                {
 
                     const auto &v = entry.value();
 
@@ -125,8 +134,9 @@ public:
                         std::cout << v.string();
                     else
                         std::cout << "Unknown";
-
-                } else {
+                }
+                else
+                {
                     std::cout << "NotAvailable";
                 }
 
@@ -136,10 +146,9 @@ public:
     }
 };
 
-
 /* C bridge function for C code */
 
-extern "C" const char* kuksa_get_wiper_mode()
+extern "C" const char *kuksa_get_wiper_mode()
 {
     static std::string result = "OFF";
 

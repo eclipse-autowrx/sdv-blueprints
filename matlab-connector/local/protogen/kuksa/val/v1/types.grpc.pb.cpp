@@ -2,8 +2,8 @@
 // If you make any local change, they will be lost.
 // source: kuksa/val/v1/types.proto
 
-#include "kuksa/val/v1/types.pb.h"
-#include "kuksa/val/v1/types.grpc.pb.h"
+#include "types.pb.h"
+#include "types.grpc.pb.h"
 
 #include <functional>
 #include <grpcpp/support/async_stream.h>
@@ -19,11 +19,13 @@
 #include <grpcpp/server_context.h>
 #include <grpcpp/impl/service_type.h>
 #include <grpcpp/support/sync_stream.h>
-namespace kuksa {
-namespace val {
-namespace v1 {
+namespace kuksa
+{
+  namespace val
+  {
+    namespace v1
+    {
 
-}  // namespace kuksa
-}  // namespace val
-}  // namespace v1
-
+    } // namespace kuksa
+  } // namespace val
+} // namespace v1

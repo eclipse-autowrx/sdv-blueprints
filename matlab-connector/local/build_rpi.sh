@@ -25,24 +25,26 @@ fi
 # Compiler settings for ARM64 target
 CC=$ARM_CC
 CXX=$ARM_CXX
-CFLAGS="-O2 -fPIC -march=armv8-a -w"
-CXXFLAGS="-O2 -fPIC -march=armv8-a -w -std=c++17"
+# include project root (.) so headers such as da_connector.h are found
+CFLAGS="-O2 -fPIC -march=armv8-a -w -I."
+CXXFLAGS="-O2 -fPIC -march=armv8-a -w -std=c++17 -I. -Ilocal/protogen -Ilocal/protogen/kuksa/val/v1"
 LDFLAGS="-shared"
 
-# gRPC and protobuf libraries (adjust paths as needed for cross-compilation)
-GRPC_LIBS="-lgrpc++ -lgrpc -lprotobuf -lpthread -ldl"
+# gRPC and protobuf libraries (will be available on target RPi5)
+GRPC_LIBS="-lgrpc++ -lgrpc -lgpr -lprotobuf -lpthread -ldl"
 
 # Source files
 C_SOURCES="da_connector.c"
 CPP_SOURCES="client.cpp"
-MAIN_SOURCE="main.c"
+# protobuf sources are discovered automatically in the protogen tree
+PROTOBUF_SOURCES=""
+MAIN_SOURCE="local/main.c"
 HEADERS="da_connector.h kuksa_bridge.h"
 
 # Build directory
-BUILD_DIR="build"
+BUILD_DIR="build_rpi"
 
 # Outputs
-LIB_OUTPUT="$BUILD_DIR/libda_connector.so"
 EXE_OUTPUT="$BUILD_DIR/da_connector_app"
 
 # Create build directory if it doesn't exist
@@ -72,8 +74,8 @@ if [ ! -f "kuksa_bridge.h" ]; then
     exit 1
 fi
 
-if [ ! -f "main.c" ]; then
-    echo "ERROR: main.c not found!"
+if [ ! -f "local/main.c" ]; then
+    echo "ERROR: local/main.c not found!"
     exit 1
 fi
 
@@ -86,25 +88,27 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# Compile protobuf generated files
+# Automatically build any .pb.cpp files present in the protogen directory
+PROTO_DIR="local/protogen/kuksa/val/v1"
+echo "Compiling protobuf sources in $PROTO_DIR..."
+for src in "$PROTO_DIR"/*.pb.cpp; do
+    [ -e "$src" ] || continue
+    obj="$BUILD_DIR/$(basename "$src" .cpp).o"
+    echo "  $src -> $obj"
+    $CXX $CXXFLAGS -c -o "$obj" "$src"
+    if [ $? -ne 0 ]; then
+        echo "ERROR: Protobuf compilation failed for $src!"
+        exit 1
+    fi
+done
+
 # Compile C++ source to object file
 echo "Compiling C++ source: $CPP_SOURCES..."
 $CXX $CXXFLAGS -c -o $BUILD_DIR/client.o $CPP_SOURCES
 
 if [ $? -ne 0 ]; then
     echo "ERROR: C++ compilation failed!"
-    exit 1
-fi
-
-# Link the shared library using C++ linker (for C++ runtime and gRPC)
-echo "Linking shared library..."
-$CXX $LDFLAGS -o $LIB_OUTPUT $BUILD_DIR/da_connector.o $BUILD_DIR/client.o $GRPC_LIBS
-
-# Check if linking was successful
-if [ $? -eq 0 ]; then
-    echo "Shared library build successful! Output: $LIB_OUTPUT"
-    ls -lh $LIB_OUTPUT
-else
-    echo "ERROR: Shared library linking failed!"
     exit 1
 fi
 
@@ -118,12 +122,20 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Linking executable..."
-$CXX -o $EXE_OUTPUT $BUILD_DIR/main.o $BUILD_DIR/da_connector.o $BUILD_DIR/client.o $GRPC_LIBS
+# link every object in build directory; this covers generated protobuf objects too
+objs=$(ls $BUILD_DIR/*.o 2>/dev/null)
+$CXX -o $EXE_OUTPUT $objs $GRPC_LIBS
 
 # Check if compilation was successful
 if [ $? -eq 0 ]; then
     echo "Executable build successful! Output: $EXE_OUTPUT"
     ls -lh $EXE_OUTPUT
+    echo ""
+    echo "To verify ARM64 architecture:"
+    echo "  file $EXE_OUTPUT"
+    echo ""
+    echo "Transfer to RPi5 and ensure these libraries are installed:"
+    echo "  sudo apt-get install libgrpc++-dev libprotobuf-dev"
 else
     echo "ERROR: Executable build failed!"
     exit 1
