@@ -130,15 +130,15 @@ double da_connector()
     }
     else if (strcmp(buffer, "SLOW") == 0)
     {
-      return 500;
+      return 3;
     }
     else if (strcmp(buffer, "MEDIUM") == 0)
     {
-      return 750;
+      return 4;
     }
     else if (strcmp(buffer, "FAST") == 0)
     {
-      return 1000;
+      return 6;
     }
   }
 
