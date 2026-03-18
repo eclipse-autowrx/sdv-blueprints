@@ -1,14 +1,34 @@
-# MATLAB External Mode - Haptic Force Controller Starter Kit
+# digital.auto MATLAB Simulink Connector: Smart Wipers
 
-## Overview
-- This example demonstrates the implementation of the control of smart actuators (SW on the Central Computer) in Simulink as a variant of the haptic force controller based on the "MiX / Digital.auto StarterKit Demonstrator" (see https://github.boschdevcloud.com/bios-integration-of-xDomain-systems).
-- The motor position setpoint for the right motor is provided as a parameter. The left motor is synchronized with the actual position of the right motor.
-- The Central Computer, on which the application is deployed using the MATLAB external mode, communicates with the zone microcontrollers using UDP/IP. The SW runs in a cyclic 1 ms process.
-- The serializer and deserializer are taken over from https://github.boschdevcloud.com/bios-integration-of-xDomain-systems/ros2_haptic_force_controller and are integrated in Simulink using the "C Caller" block, the UDP/IP communication is implemented in C++ and integrated in Simulink using the "C Caller" block as well (see source and header files in ./src directory of the project).
+## Use Case
+This project bridges MATLAB/Simulink vehicle models with digital.auto playground, specifically targeting the **Smart Wipers with digital.auto Starter Kit** prototype. It allows Simulink-generated C++ code to run natively on target hardware and communicate live with standardized vehicle signals via digital.auto, enabling seamless Software-Defined Vehicle (SDV) prototyping.
 
+## Architecture
+* **Logic Layer (Simulink):** Generates standard C++ code from the `.slx` model.
+* **Connector Layer (Custom Code):** Utilizes `da_connector` to interface the Simulink execution step with the digital.auto framework.
+* **Runtime:** On the hardware runs `sdv-runtime` which takes the vehicle signals coming from digital.auto playground and feeds to the matlab generated code to collectively control the wiper motor operation.
 
-## Run the Example
-- 0. Prerequesit: "MiX / Digital.auto StarterKit Demonstrator" set-up deployed on hardware.
-- 1. Open the project and update the external mode configuration.
-- 2. Click on the shortcut "Open Model" and start the external mode in Simulink (HARDWARE Tab -> Monitor & Tune).
-- 3. Enable the controllers by setting the parameter "flag_enable_controller" to 1. Change the motor angle setpoint by setting the parameter "Angle_setpoint_right". Tune the parameters of the 2DOF PID controllers during runtime.
+## Getting Started
+
+### Prerequisites
+1. **Hardware:** The use case is tested on the E/E starter KIT hardware detailed [here](https://github.com/eclipse-autowrx/SDV4EE-demo).
+2. **Host Software:** digital.auto playground and MATLAB (Tested on R2025a).
+
+### Clone the Repository
+Clone this repository to your local host machine. 
+
+### digital.auto Playgrounds Runtime Setup
+To execute the **Smart Wipers with Starter Kit** prototype and enable the physical motor control, you must run the initialization script on the Pi hardware.
+
+1. Copy the repository contents to the guest folder `$HOME/digital.auto` on the Raspberry Pi.
+2. Execute the setup script to initialize the Kuksa databroker and the motor control runtime: `$HOME/digital.auto/scripts/setup_rpi.sh`
+
+### Build and Deploy
+1. Open the project (`wipersCtrlr.prj`) in MATLAB.
+1. Open the simulink model (`models\hapticForceCtrlr.slx`)
+1. Click **Monitor & Tune**. The build process will compile the executable for the Pi. Then transfer and execute on target.
+1. Launch the digital.auto prototype from this [link](https://playground.digital.auto/model/69a686b45ee0670962b69bb2/library/prototype/69a686c75ee0670962b69c4c/dashboard)
+1. Add/select the runtime and click the `RUN` button.
+
+## Demo
+![Smart Wipers Demo](images/smart_wipers.gif)
