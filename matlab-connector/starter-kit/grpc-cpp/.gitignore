@@ -1,0 +1,7 @@
+build/
+# MATLAB Build Artifacts
+slprj/
+*_ert_rtw/
+*.slxc
+*.elf
+*.bak

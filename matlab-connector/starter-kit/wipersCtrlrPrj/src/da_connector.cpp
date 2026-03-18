@@ -1,8 +1,8 @@
 #include "da_connector.hpp"
 #include <stdio.h>
-
+extern double da_connector();
 #ifdef _WIN32
-// Windows-specific stub
+// Windows-specific includes and dummy implementation
 double da_connector()
 {
   fprintf(stderr, "ERROR: da_connector() is not supported on Windows\n");
@@ -12,13 +12,9 @@ double da_connector()
 
 #include <time.h>
 #include <string.h>
-
-/*
- * The actual implementation of kuksa_get_wiper_mode() lives in client.cpp
- * (GRC client implementation). We only declare it here so da_connector
- * can call it.
- */
-extern const char *kuksa_get_wiper_mode(void);
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <unistd.h>
 
 // Static buffer to track the last logged message
 static char last_message[256] = "";
@@ -59,18 +55,76 @@ void log_message(const char *message)
   last_message[sizeof(last_message) - 1] = '\0';
 }
 
-double da_connector()
+int uds_listen(char *buffer, size_t buffer_size)
 {
-  const char *buffer = kuksa_get_wiper_mode();
-  if (buffer == NULL)
+  int sock_fd;
+  struct sockaddr_un addr;
+  ssize_t bytes_received;
+  const char *socket_path = "/tmp/wiper_status.sock";
+
+  // Create socket file descriptor (client endpoint)
+  sock_fd = socket(AF_UNIX, SOCK_STREAM, 0);
+  if (sock_fd == -1)
   {
-    return 0;
+    fprintf(stderr, "Failed to create socket file descriptor\n");
+    return -1;
   }
 
-  log_message(buffer);
+  // Setup socket address
+  memset(&addr, 0, sizeof(addr));
+  addr.sun_family = AF_UNIX;
+  strncpy(addr.sun_path, socket_path, sizeof(addr.sun_path) - 1);
 
-  // Map wiper mode to return value
-  if (strcmp(buffer, "OFF") == 0)
+  // Connect to the socket
+  if (connect(sock_fd, (struct sockaddr *)&addr, sizeof(addr)) == -1)
+  {
+    fprintf(stderr, "Failed to connect to socket: %s\n", socket_path);
+    close(sock_fd);
+    return -1;
+  }
+
+  // Read the message (one-shot read)
+  bytes_received = recv(sock_fd, buffer, buffer_size - 1, 0);
+  if (bytes_received > 0)
+  {
+    buffer[bytes_received] = '\0'; // Null-terminate the string
+
+    // Remove trailing newline if present
+    if (bytes_received > 0 && buffer[bytes_received - 1] == '\n')
+    {
+      buffer[bytes_received - 1] = '\0';
+    }
+  }
+  else if (bytes_received == 0)
+  {
+    fprintf(stderr, "No data received from socket\n");
+    close(sock_fd);
+    return 0;
+  }
+  else
+  {
+    fprintf(stderr, "Error receiving data from socket\n");
+    close(sock_fd);
+    return -1;
+  }
+
+  // Close the socket
+  close(sock_fd);
+
+  return bytes_received;
+}
+
+double da_connector()
+{
+  char buffer[1024];
+  int result = uds_listen(buffer, sizeof(buffer));
+
+  if (result > 0)
+  {
+    log_message(buffer);
+
+    // Map wiper mode to return value
+    if (strcmp(buffer, "OFF") == 0)
     {
       return 0;
     }
@@ -86,10 +140,10 @@ double da_connector()
     {
       return 4;
     }
-  
+  }
 
-  // Default return if no valid buffer received
+  // Default return if no valid mode received
   return 0;
 }
 
-#endif // _WIN32
+#endif // win
