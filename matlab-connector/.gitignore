@@ -1,7 +1,16 @@
-build/
-# MATLAB Build Artifacts
+# MATLAB
+*.slxc
 slprj/
 *_ert_rtw/
-*.slxc
+*.mat
+*.autosave
+work/
+
+# C++ Build
+build/
+*.o
 *.elf
-*.bak
+
+# OS Files
+.DS_Store
+Thumbs.db

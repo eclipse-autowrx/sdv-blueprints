@@ -1,4 +1,14 @@
-% function to create board, toolchain and target connection
+/**
+ * Copyright (c) 2025 Robert Bosch GmbH.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the MIT License which is available at
+ * https://opensource.org/licenses/MIT.
+ *
+ * SPDX-License-Identifier: MIT
+ */
+ 
+ % function to create board, toolchain and target connection
 function [board, toolchain, targetConnection] = createExtModeBoard(boardName, localForwardPort)
     % Define target processor
     processor = target.get("Processor",Id='ARM Compatible-ARM Cortex-A (64-bit)');

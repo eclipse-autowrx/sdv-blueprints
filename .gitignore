@@ -1,1 +1,16 @@
-matlab-connector/hapticForceCtrlr_hack.slx.autosave
+# MATLAB
+*.slxc
+slprj/
+*_ert_rtw/
+*.mat
+*.autosave
+work/
+
+# C++ Build
+build/
+*.o
+*.elf
+
+# OS Files
+.DS_Store
+Thumbs.db
