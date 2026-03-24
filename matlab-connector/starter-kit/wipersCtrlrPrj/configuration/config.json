@@ -1,0 +1,12 @@
+{
+  "IPJumpHost": "192.168.88.112",
+  "UserJumpHost": "bluebox",
+  "IPBuildHost": "192.168.88.112",
+  "UserBuildHost": "bluebox",
+  "IPTarget": "192.168.88.110",
+  "UserTarget": "bluebox",
+  "PortLocal": "17731",
+  "PortTarget": "17729",
+  "PrivateKey": "C:\\Users\\tfa2si\\.ssh\\id_rsa",
+  "DeploymentPath": "/home/bluebox/matlabtest"
+}
