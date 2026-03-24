@@ -1,12 +1,11 @@
-/**
- * Copyright (c) 2025 Robert Bosch GmbH.
- *
- * This program and the accompanying materials are made available under the
- * terms of the MIT License which is available at
- * https://opensource.org/licenses/MIT.
- *
- * SPDX-License-Identifier: MIT
- */
+// Copyright (c) 2025 Eclipse Foundation.
+// 
+// This program and the accompanying materials are made available under the
+// terms of the MIT License which is available at
+// https://opensource.org/licenses/MIT.
+//
+// SPDX-License-Identifier: MIT
+
  function ert_make_rtw_hook(hookMethod,modelName,rtwroot,templateMakefile,buildOpts,buildArgs, buildInfo)
 
 switch hookMethod
