@@ -1,12 +1,10 @@
-/**
- * Copyright (c) 2025 Robert Bosch GmbH.
- *
- * This program and the accompanying materials are made available under the
- * terms of the MIT License which is available at
- * https://opensource.org/licenses/MIT.
- *
- * SPDX-License-Identifier: MIT
- */
+// Copyright (c) 2025 Eclipse Foundation.
+// 
+// This program and the accompanying materials are made available under the
+// terms of the MIT License which is available at
+// https://opensource.org/licenses/MIT.
+//
+// SPDX-License-Identifier: MIT
 
 target.connection.close(board.Name);
 target.remove([toolchain, targetConnection, board], 'IncludeAssociations', true);
