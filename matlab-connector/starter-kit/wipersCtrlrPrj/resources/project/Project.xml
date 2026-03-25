@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project MetadataType="monolithic">
+    <Categories Location="Root">
+        <Category Location="FileClassCategory">
+            <Info DataType="None" Name="Classification" ReadOnly="1" SingleValued="1"/>
+            <Label Location="artifact">
+                <Info Name="Artifact" ReadOnly="READ_ONLY"/>
+            </Label>
+            <Label Location="convenience">
+                <Info Name="Convenience" ReadOnly="READ_ONLY"/>
+            </Label>
+            <Label Location="derived">
+                <Info Name="Derived" ReadOnly="READ_ONLY"/>
+            </Label>
+            <Label Location="design">
+                <Info Name="Design" ReadOnly="READ_ONLY"/>
+            </Label>
+            <Label Location="none">
+                <Info Name="None" ReadOnly="READ_ONLY"/>
+            </Label>
+            <Label Location="other">
+                <Info Name="Other" ReadOnly="READ_ONLY"/>
+            </Label>
+            <Label Location="test">
+                <Info Name="Test" ReadOnly="READ_ONLY"/>
+            </Label>
+        </Category>
+    </Categories>
+    <EntryPoints Location="Root">
+        <EntryPoint Location="1c26b8e3-267b-4ec2-bd08-d03a07658a83">
+            <Info File="scripts/checkConnection.m" GroupUUID="default" Icon="" Name="Check Connections" Type="Basic" Visible="1"/>
+        </EntryPoint>
+        <EntryPoint Location="651f65c3-88db-4ddb-96fb-0afc0a82e3a5">
+            <Info File="scripts/shutdown.m" GroupUUID="default" Icon="" Name="shutdown" Type="Shutdown" Visible="0">
+                <Extension Name="ShutdownPrev" Value="HEAD"/>
+            </Info>
+        </EntryPoint>
+        <EntryPoint Location="9255e1d0-74d9-453d-ae6f-85256675db15">
+            <Info File="scripts/startup.m" GroupUUID="default" Icon="" Name="startup" Type="StartUp" Visible="0">
+                <Extension Name="StartUpPrev" Value="HEAD"/>
+            </Info>
+        </EntryPoint>
+        <EntryPoint Location="95f0381f-2f52-4dce-b3f7-1987e0287deb">
+            <Info File="scripts/initExtMode.m" GroupUUID="default" Icon="" Name="Re-initialize External Mode" Type="Basic" Visible="1"/>
+        </EntryPoint>
+        <EntryPoint Location="b1fa9a42-8716-4e9a-89a1-dac1ab50e2a4">
+            <Info File="scripts/ConfigurationApp.mlapp" GroupUUID="default" Icon="" Name="Configuration App" Type="Basic" Visible="1"/>
+        </EntryPoint>
+        <EntryPoint Location="b50d9dcf-5aab-4d34-b061-ec2fdebbaaa9">
+            <Info File="scripts/setupModelForExtModeProject.m" GroupUUID="default" Icon="" Name="setupModelForExtModeProject" Type="Batch Job" Visible="0"/>
+        </EntryPoint>
+        <EntryPoint Location="b7b8b7b8-94f6-4db7-84bd-7e4a2b624654">
+            <Info File="models/hapticForceCtrlr.slx" GroupUUID="default" Icon="" Name="Open Model" Type="Basic" Visible="1"/>
+        </EntryPoint>
+    </EntryPoints>
+    <Files Location="Root">
+        <File Location="configuration">
+            <Info/>
+            <DIR_SIGNIFIER Location="1">
+                <Info/>
+            </DIR_SIGNIFIER>
+            <File Location="config.json">
+                <Info/>
+            </File>
+            <File Location="hosts.json">
+                <Info/>
+            </File>
+        </File>
+        <File Location="models">
+            <Info/>
+            <DIR_SIGNIFIER Location="1">
+                <Info/>
+            </DIR_SIGNIFIER>
+            <File Location="hapticForceCtrlr.slx">
+                <Info>
+                    <Category UUID="FileClassCategory">
+                        <Label UUID="design"/>
+                    </Category>
+                </Info>
+            </File>
+        </File>
+        <File Location="scripts">
+            <Info/>
+            <DIR_SIGNIFIER Location="1">
+                <Info/>
+            </DIR_SIGNIFIER>
+            <File Location="ConfigurationApp.mlapp">
+                <Info>
+                    <Category UUID="FileClassCategory">
+                        <Label UUID="design"/>
+                    </Category>
+                </Info>
+            </File>
+            <File Location="SSHExecutionTool.m">
+                <Info>
+                    <Category UUID="FileClassCategory">
+                        <Label UUID="design"/>
+                    </Category>
+                </Info>
+            </File>
+            <File Location="checkConnection.m">
+                <Info>
+                    <Category UUID="FileClassCategory">
+                        <Label UUID="design"/>
+                    </Category>
+                </Info>
+            </File>
+            <File Location="copy-key.bat">
+                <Info/>
+            </File>
+            <File Location="createExtModeBoard.m">
+                <Info>
+                    <Category UUID="FileClassCategory">
+                        <Label UUID="design"/>
+                    </Category>
+                </Info>
+            </File>
+            <File Location="ert_make_rtw_hook.m">
+                <Info>
+                    <Category UUID="FileClassCategory">
+                        <Label UUID="design"/>
+                    </Category>
+                </Info>
+            </File>
+            <File Location="initExtMode.m">
+                <Info>
+                    <Category UUID="FileClassCategory">
+                        <Label UUID="design"/>
+                    </Category>
+                </Info>
+            </File>
+            <File Location="setupKeys.m">
+                <Info>
+                    <Category UUID="FileClassCategory">
+                        <Label UUID="design"/>
+                    </Category>
+                </Info>
+            </File>
+            <File Location="setupModelForExtModeProject.m">
+                <Info>
+                    <Category UUID="FileClassCategory">
+                        <Label UUID="design"/>
+                    </Category>
+                </Info>
+            </File>
+            <File Location="shutdown.m">
+                <Info>
+                    <Category UUID="FileClassCategory">
+                        <Label UUID="design"/>
+                    </Category>
+                </Info>
+            </File>
+            <File Location="startup.m">
+                <Info>
+                    <Category UUID="FileClassCategory">
+                        <Label UUID="design"/>
+                    </Category>
+                </Info>
+            </File>
+        </File>
+        <File Location="src">
+            <Info/>
+            <DIR_SIGNIFIER Location="1">
+                <Info/>
+            </DIR_SIGNIFIER>
+            <File Location="RTthreads.hpp">
+                <Info>
+                    <Category UUID="FileClassCategory">
+                        <Label UUID="design"/>
+                    </Category>
+                </Info>
+            </File>
+            <File Location="StepThread.hpp">
+                <Info>
+                    <Category UUID="FileClassCategory">
+                        <Label UUID="design"/>
+                    </Category>
+                </Info>
+            </File>
+            <File Location="ert_main_base.cpp">
+                <Info>
+                    <Category UUID="FileClassCategory">
+                        <Label UUID="design"/>
+                    </Category>
+                </Info>
+            </File>
+            <File Location="udpcom.cpp">
+                <Info>
+                    <Category UUID="FileClassCategory">
+                        <Label UUID="design"/>
+                    </Category>
+                </Info>
+            </File>
+            <File Location="udpcom.hpp">
+                <Info>
+                    <Category UUID="FileClassCategory">
+                        <Label UUID="design"/>
+                    </Category>
+                </Info>
+            </File>
+            <File Location="serializer.cpp">
+                <Info>
+                    <Category UUID="FileClassCategory">
+                        <Label UUID="design"/>
+                    </Category>
+                </Info>
+            </File>
+            <File Location="serializer.hpp">
+                <Info>
+                    <Category UUID="FileClassCategory">
+                        <Label UUID="design"/>
+                    </Category>
+                </Info>
+            </File>
+        </File>
+        <File Location="work">
+            <Info/>
+            <DIR_SIGNIFIER Location="1">
+                <Info/>
+            </DIR_SIGNIFIER>
+            <File Location="cache">
+                <Info/>
+                <DIR_SIGNIFIER Location="1">
+                    <Info/>
+                </DIR_SIGNIFIER>
+            </File>
+            <File Location="codegen">
+                <Info/>
+                <DIR_SIGNIFIER Location="1">
+                    <Info/>
+                </DIR_SIGNIFIER>
+            </File>
+        </File>
+    </Files>
+    <Info Location="ProjectData">
+        <Info Name="HapticForceCtrlr"/>
+    </Info>
+    <ProjectPath Location="Root">
+        <Reference Location="5b462214-65c4-4905-a06f-bfe52e2126c5">
+            <Info Ref="scripts" Type="Relative"/>
+        </Reference>
+        <Reference Location="8eae552b-7ff1-4174-8302-1f80eebde9a1">
+            <Info Ref="configuration" Type="Relative"/>
+        </Reference>
+    </ProjectPath>
+    <Root Location="Extensions">
+        <Extension Location="Information">
+            <Info description="This is a Matlab external mode project."/>
+        </Extension>
+    </Root>
+    <WorkingFolders Location="Root">
+        <Reference Location="SimulinkCacheFolder">
+            <Info Ref="work/cache" Type="Relative"/>
+        </Reference>
+        <Reference Location="SimulinkCodeGenFolder">
+            <Info Ref="work/codegen" Type="Relative"/>
+        </Reference>
+    </WorkingFolders>
+</project>
