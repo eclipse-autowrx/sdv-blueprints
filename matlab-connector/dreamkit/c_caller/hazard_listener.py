@@ -10,6 +10,7 @@ import asyncio
 import socket
 import os
 import sys
+import signal
 
 try:
     from kuksa_client.grpc.aio import VSSClient
@@ -24,9 +25,15 @@ class HazardListener:
     def __init__(self, kuksa_address="localhost", kuksa_port=55555):
         self.kuksa_address = kuksa_address
         self.kuksa_port = kuksa_port
-        self.running = False
         self.socket_path = '/tmp/kuksa_hazard_signal.sock'
         self.client = None
+        self._shutdown_event = asyncio.Event()
+        # Track last published value so we only call KUKSA on actual changes.
+        # Simulink sends the hazard value every model step (many times/sec),
+        # but the boolean only changes rarely.
+        self._last_hazard = None
+        self._pending_value = None        # latest value received from socket
+        self._value_changed = asyncio.Event()  # signals the publisher task
     
     async def connect_kuksa(self):
         """Connect to KUKSA"""
@@ -34,25 +41,51 @@ class HazardListener:
         await self.client.connect()
         print(f"[INFO] Connected to KUKSA at {self.kuksa_address}:{self.kuksa_port}")
     
-    async def set_hazard(self, value):
-        """Set hazard signal in KUKSA"""
-        try:
-            is_hazard = (value.lower() == 'true' or value == '1')
-            await self.client.set_target_values({
-                VSS_HAZARD_SIGNAL: Datapoint(is_hazard)
-            })
-            print(f"[UPDATE] Set {VSS_HAZARD_SIGNAL} = {is_hazard}")
-        except Exception as e:
-            print(f"[ERROR] Failed to set hazard signal: {e}")
+    async def _kuksa_publisher(self):
+        """Publish hazard value to KUKSA only when it changes.
+
+        Runs as a separate task so the socket accept loop is never
+        blocked by a slow KUKSA gRPC round-trip.
+        """
+        while not self._shutdown_event.is_set():
+            # Wait until a new value arrives or shutdown is requested
+            changed = asyncio.create_task(self._value_changed.wait())
+            shutdown = asyncio.create_task(self._shutdown_event.wait())
+            done, pending = await asyncio.wait(
+                {changed, shutdown}, return_when=asyncio.FIRST_COMPLETED
+            )
+            for t in pending:
+                t.cancel()
+            if self._shutdown_event.is_set():
+                break
+
+            self._value_changed.clear()
+            is_hazard = self._pending_value
+            if is_hazard == self._last_hazard:
+                continue  # no real change, skip KUKSA call
+
+            try:
+                await self.client.set_target_values({
+                    VSS_HAZARD_SIGNAL: Datapoint(is_hazard)
+                })
+                self._last_hazard = is_hazard
+                print(f"[UPDATE] Set {VSS_HAZARD_SIGNAL} = {is_hazard}")
+            except Exception as e:
+                print(f"[ERROR] Failed to set hazard signal: {e}")
     
-    def _handle_client(self, conn):
-        """Handle client connection"""
+    async def _handle_client(self, conn):
+        """Handle client connection — fast read only, no KUKSA call here."""
+        loop = asyncio.get_event_loop()
         try:
-            data = conn.recv(1024)
+            data = await asyncio.wait_for(loop.sock_recv(conn, 1024), timeout=0.1)
             if data:
                 value = data.decode('utf-8').strip()
-                # Schedule async task
-                asyncio.create_task(self.set_hazard(value))
+                is_hazard = (value.lower() == 'true' or value == '1')
+                # Store latest value and wake the publisher (non-blocking)
+                self._pending_value = is_hazard
+                self._value_changed.set()
+        except asyncio.TimeoutError:
+            pass
         except Exception as e:
             print(f"[ERROR] Failed to receive from client: {e}")
         finally:
@@ -72,7 +105,7 @@ class HazardListener:
         # Create server socket
         server_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         server_sock.bind(self.socket_path)
-        server_sock.listen(10)
+        server_sock.listen(64)  # larger backlog for bursty Simulink steps
         server_sock.setblocking(False)
         
         print(f"[INFO] Listening for hazard signals on: {self.socket_path}")
@@ -81,13 +114,22 @@ class HazardListener:
         loop = asyncio.get_event_loop()
         
         try:
-            while self.running:
-                # Accept connections asynchronously
+            while not self._shutdown_event.is_set():
                 try:
-                    conn, _ = await loop.sock_accept(server_sock)
-                    self._handle_client(conn)
+                    # Timeout lets us periodically check for shutdown
+                    conn, _ = await asyncio.wait_for(
+                        loop.sock_accept(server_sock),
+                        timeout=0.5
+                    )
+                    # Fire-and-forget: handle_client only does a fast recv + store
+                    asyncio.create_task(self._handle_client(conn))
+                except asyncio.TimeoutError:
+                    continue
+                except asyncio.CancelledError:
+                    break
                 except Exception as e:
-                    if self.running:
+                    if not self._shutdown_event.is_set():
+                        print(f"[WARN] Socket accept error: {e}")
                         await asyncio.sleep(0.1)
         finally:
             server_sock.close()
@@ -98,8 +140,6 @@ class HazardListener:
     
     async def start(self):
         """Start the listener"""
-        self.running = True
-        
         print("=" * 60)
         print("KUKSA Hazard Listener from Simulink")
         print("=" * 60)
@@ -107,36 +147,67 @@ class HazardListener:
         # Connect to KUKSA
         await self.connect_kuksa()
         
-        # Listen on socket
-        await self.listen_socket()
+        # Start KUKSA publisher as a background task
+        publisher = asyncio.create_task(self._kuksa_publisher())
+        
+        try:
+            # Listen on socket (blocks until shutdown)
+            await self.listen_socket()
+        finally:
+            publisher.cancel()
+            try:
+                await publisher
+            except asyncio.CancelledError:
+                pass
     
     async def stop(self):
         """Stop the listener"""
-        self.running = False
+        self._shutdown_event.set()
+        self._value_changed.set()  # wake publisher so it can exit
         
         if self.client:
-            await self.client.disconnect()
+            try:
+                await self.client.disconnect()
+            except Exception:
+                pass
         
         try:
             os.unlink(self.socket_path)
         except:
             pass
 
-if __name__ == "__main__":
-    import signal
-    
+
+async def main():
     listener = HazardListener()
-    
-    def signal_handler(sig, frame):
+
+    async def shutdown():
         print("\n[INFO] Shutting down...")
-        asyncio.create_task(listener.stop())
-    
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
-    
+        await listener.stop()
+
+    loop = asyncio.get_event_loop()
     try:
-        asyncio.run(listener.start())
-    except KeyboardInterrupt:
+        # Unix: register signals directly with the event loop so
+        # the shutdown coroutine is scheduled properly
+        for sig in (signal.SIGINT, signal.SIGTERM):
+            loop.add_signal_handler(
+                sig, lambda: asyncio.create_task(shutdown())
+            )
+    except NotImplementedError:
+        # Windows: add_signal_handler is not supported, fall back
+        # to KeyboardInterrupt which is caught below
+        pass
+
+    try:
+        await listener.start()
+    except asyncio.CancelledError:
         pass
     finally:
+        await listener.stop()
         print("[INFO] Shutdown complete")
+
+
+if __name__ == "__main__":
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\n[INFO] Shutdown complete")
