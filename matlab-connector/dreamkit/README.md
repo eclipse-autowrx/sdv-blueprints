@@ -11,13 +11,8 @@
 # Dreamkit – Pothole Alert Demo
 
 This folder contains a **playground prototype** that demonstrates how a
-MATLAB/Simulink control algorithm can be integrated with Eclipse SDV
-components running on an embedded Linux target (e.g. NVIDIA Jetson Orin).
-
-> **Note:** The dreamkit folder is the designated area for experimental and
-> prototype work. Anything new that is still under active development or
-> exploration should go here before being promoted into a more stable
-> location.
+MATLAB/Simulink control algorithm can be integrated with digital.auto
+components running on a dreamkit target (e.g. NVIDIA Jetson Orin).
 
 ---
 
