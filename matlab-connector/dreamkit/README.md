@@ -182,6 +182,7 @@ more robust, scalable, and standardized architecture.
 -   [Eclipse SDV Runtime Documentation](https://docs.digital.auto/)
 -   [Eclipse SDV Playground Model](https://playground.digital.auto/model/6875ec635430c81ab197d7bf/library/prototype/68edcf3fd327158aa967d7ff/dashboard?search=steeringw)
     -   Model ID: `Runtime-dreamKIT-c028e76a`
+-   [Pothole Alert Prototype](https://playground.digital.auto/model/69a686b45ee0670962b69bb2/library/prototype/69c623b738bb8e98f0a9d41d/view)
 
 ---
 

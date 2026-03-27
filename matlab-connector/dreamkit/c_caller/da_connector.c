@@ -16,11 +16,6 @@ double da_get_pothole_left() {
     return 0.0;
 }
 
-double da_get_pothole_center() {
-    fprintf(stderr, "ERROR: DA connector not supported on Windows\n");
-    return 0.0;
-}
-
 double da_get_pothole_right() {
     fprintf(stderr, "ERROR: DA connector not supported on Windows\n");
     return 0.0;
