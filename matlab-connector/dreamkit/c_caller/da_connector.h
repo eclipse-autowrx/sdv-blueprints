@@ -17,7 +17,6 @@ extern "C" {
 
 // Read functions - Get values from DA via UDS
 double da_get_pothole_left();
-double da_get_pothole_center();
 double da_get_pothole_right();
 double da_get_steering_angle();
 

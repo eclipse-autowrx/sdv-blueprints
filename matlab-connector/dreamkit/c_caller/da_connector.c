@@ -148,30 +148,10 @@ double da_get_pothole_left() {
     int bytes = uds_read(socket_path, buffer, sizeof(buffer));
     
     if (bytes > 0) {
-        fprintf(stderr, "[DEBUG] Left pothole received: '%s'\n", buffer);
         // Parse boolean or numeric value
         if (strcmp(buffer, "true") == 0 || strcmp(buffer, "1") == 0) {
             return 1.0;
         }
-    } else {
-        fprintf(stderr, "[DEBUG] Left pothole read failed (bytes=%d)\n", bytes);
-    }
-    return 0.0;
-}
-
-// Read pothole detection from center lane (zones 2, 5, 8)
-double da_get_pothole_center() {
-    char buffer[1024];
-    const char *socket_path = "/tmp/kuksa_pothole_center.sock";
-    int bytes = uds_read(socket_path, buffer, sizeof(buffer));
-    
-    if (bytes > 0) {
-        fprintf(stderr, "[DEBUG] Center pothole received: '%s'\n", buffer);
-        if (strcmp(buffer, "true") == 0 || strcmp(buffer, "1") == 0) {
-            return 1.0;
-        }
-    } else {
-        fprintf(stderr, "[DEBUG] Center pothole read failed (bytes=%d)\n", bytes);
     }
     return 0.0;
 }
@@ -183,12 +163,9 @@ double da_get_pothole_right() {
     int bytes = uds_read(socket_path, buffer, sizeof(buffer));
     
     if (bytes > 0) {
-        fprintf(stderr, "[DEBUG] Right pothole received: '%s'\n", buffer);
         if (strcmp(buffer, "true") == 0 || strcmp(buffer, "1") == 0) {
             return 1.0;
         }
-    } else {
-        fprintf(stderr, "[DEBUG] Right pothole read failed (bytes=%d)\n", bytes);
     }
     return 0.0;
 }
@@ -201,10 +178,7 @@ double da_get_steering_angle() {
     
     if (bytes > 0) {
         double angle = atof(buffer);
-        fprintf(stderr, "[DEBUG] Steering angle received: '%s' (%.2f degrees)\n", buffer, angle);
         return angle;
-    } else {
-        fprintf(stderr, "[DEBUG] Steering angle read failed (bytes=%d)\n", bytes);
     }
     return 0.0;
 }
@@ -218,11 +192,7 @@ void da_set_hazard_signal(bool value) {
     snprintf(message, sizeof(message), "%s", value ? "true" : "false");
     
     int result = uds_write(socket_path, message);
-    if (result == 0) {
-        fprintf(stderr, "[DEBUG] Hazard signal sent: '%s'\n", message);
-    } else {
-        fprintf(stderr, "[DEBUG] Failed to send hazard signal\n");
-    }
+    (void)result; // Suppress unused variable warning
 }
 
 #endif // _WIN32
