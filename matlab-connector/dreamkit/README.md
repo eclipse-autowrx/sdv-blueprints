@@ -16,7 +16,7 @@ components running on a dreamkit target (e.g. NVIDIA Jetson Orin).
 
 ---
 
-## Demo Overview
+## Implementation details
 
 The demo implements a **Pothole Alert** system:
 The following diagram shows the complete system flow:
@@ -29,24 +29,28 @@ The following diagram shows the complete system flow:
   <em>Pothole Alert System Architecture – Dreamkit Integration</em>
 </p>
 
+
 1. A **simulation script** (`simulate_pothole.py`) running on the Jetson
-   generates synthetic pothole data and publishes it to
-   [Eclipse KUKSA](https://github.com/eclipse-kuksa) via the
-   Vehicle Signal Specification (VSS). This simulates the output of a
-   real camera-based perception system.
+   generates synthetic pothole data and publishes it to the
+   **digital.auto SDV Runtime** using Vehicle Signal Specification (VSS) signals.
+   This simulates the output of a real camera-based perception system.
+
 2. A **Logitech steering wheel** connected to the Jetson provides steering
-   angle input via scripts that bridge the hardware to KUKSA, making the
+   angle input via scripts that bridge the dreamkit to digital.auto sdv-runtime, making the
    steering data available as VSS signals.
-3. Three Python **bridge services** bridge data between KUKSA and the Simulink
+
+3. Three Python **bridge services** bridge data between digital.auto sdv-runtimeand the Simulink
    model via Unix Domain Sockets (UDS):
-   - `pothole_feeder.py` — subscribes to KUKSA pothole data and exposes it over UDS
-   - `steering_feeder.py` — subscribes to KUKSA steering data and exposes it over UDS
-   - `hazard_listener.py` — listens for hazard signals on UDS and publishes them back to KUKSA
+   - `pothole_feeder.py` — subscribes to digital.auto sdv-runtimepothole data and exposes it over UDS
+   - `steering_feeder.py` — subscribes to digital.auto sdv-runtimesteering data and exposes it over UDS
+   - `hazard_listener.py` — listens for hazard signals on UDS and publishes them back to digital.auto sdv-runtime
+
 4. The **Simulink model** (`PotholeAlertModel.slx`) running in External Mode
    reads pothole and steering data from the UDS sockets at each model step,
    evaluates whether the vehicle is steering towards a lane with a detected
    pothole, and outputs a hazard signal if true.
-5. The hazard signal from Simulink is then written back to KUKSA via
+
+5. The hazard signal from Simulink is then written back to digital.auto sdv-runtime via
    `hazard_listener.py`, closing the loop.
 
 ---
@@ -59,43 +63,28 @@ dreamkit/
 ├── c_caller/
 │   ├── da_connector.h         # C header – function declarations for Simulink C Caller blocks
 │   ├── da_connector.c         # C implementation – reads/writes UDS sockets from Simulink
-│   ├── pothole_feeder.py      # KUKSA → UDS bridge for pothole zone data (left/right)
-│   ├── steering_feeder.py     # KUKSA → UDS bridge for steering wheel angle
-│   └── hazard_listener.py     # UDS → KUKSA bridge for hazard signal output from Simulink
+│   ├── pothole_feeder.py      # digital.auto sdv-runtime → UDS bridge for pothole zone data (left/right)
+│   ├── steering_feeder.py     # digital.auto sdv-runtime → UDS bridge for steering wheel angle
+│   └── hazard_listener.py     # UDS → digital.auto sdv-runtime bridge for hazard signal output from Simulink
 └── model/
     ├── PotholeAlertModel.slx  # Simulink model (open in MATLAB to view/edit)
 ```
 
-### Key Files
-
-| File | Purpose |
-|------|---------|
-| `c_caller/da_connector.c` | C functions called by Simulink *C Caller* blocks at each model step. Reads pothole/steering data from UDS sockets and writes the hazard signal back. |
-| `c_caller/da_connector.h` | Header exposing the C API used by the Simulink model's custom code settings. |
-| `c_caller/pothole_feeder.py` | Subscribes to `Vehicle.ADAS.PotholeView` in KUKSA and serves the latest left/right pothole state on two UDS sockets. |
-| `c_caller/steering_feeder.py` | Subscribes to `Vehicle.Chassis.SteeringWheel.Angle` in KUKSA and serves the latest angle on a UDS socket. |
-| `c_caller/hazard_listener.py` | Listens on a UDS socket for the hazard boolean from Simulink and publishes value changes to `Vehicle.Body.Lights.Hazard.IsSignaling` in KUKSA. Includes change-detection to avoid flooding KUKSA with redundant writes. |
-| `model/PotholeAlertModel.slx` | The Simulink model. Uses *C Caller* blocks that invoke functions from `da_connector.c`. Configured for NVIDIA Jetson hardware and Embedded Coder deployment. |
-
-> **Note:** The `PotholeAlert.m` script that was previously used to
-> programmatically generate the Simulink model has been removed. The
-> canonical model is now `PotholeAlertModel.slx` — open it directly in
-> MATLAB/Simulink to view or modify the block diagram.
 
 ---
 
 ## Prerequisites
 
-### Target Machine (Linux / NVIDIA Jetson)
+### Dreamkit (Linux / NVIDIA Jetson)
 
 - Python 3.8+
 - [kuksa-client](https://pypi.org/project/kuksa-client/) – `pip install kuksa-client`
-- A running [KUKSA Databroker](https://github.com/eclipse-kuksa/kuksa-databroker) instance with custom VSS file
+- A running [digital.auto sdv-runtime](https://github.com/eclipse-kuksa/kuksa-) instance with custom VSS file
   - Download the custom VSS file from the [Eclipse SDV Playground model](https://playground.digital.auto/model/6875ec635430c81ab197d7bf/api/covesa/Vehicle)
 
 ### Host Machine (Windows / MATLAB)
 
-- MATLAB R2023b or later with:
+- MATLAB R2023b :
   - Simulink
   - Simulink Coder
   - MATLAB Coder
@@ -106,9 +95,9 @@ dreamkit/
 
 ## How to Run the Demo
 
-### 1. Start KUKSA Databroker on the Target
+### 1. Start digital.auto sdv-runtime on the Target
 
-Make sure the KUKSA Databroker is running and accessible on port 55555.
+Make sure the digital.auto sdv-runtime is running and accessible on port 55555.
 
 ### 2. Deploy and Start the Bridge Services
 
@@ -132,8 +121,11 @@ python3 hazard_listener.py &
 
 - The Simulink Data Inspector will show live pothole detection, steering
   angle, and hazard signal traces.
-- In KUKSA, `Vehicle.Body.Lights.Hazard.IsSignaling` will toggle based on
+- In digital.auto sdv-runtime, `Vehicle.Body.Lights.Hazard.IsSignaling` will toggle based on
   the model's output.
+- The behavior can also be visualized in the **digital.auto Playground prototype**:  
+   - https://playground.digital.auto/model/69a686b45ee0670962b69bb2/library/prototype/69c623b738bb8e98f0a9d41d/code  
+   - Provides interactive validation of the demo scenario
 
 ---
 
@@ -147,10 +139,10 @@ to read inputs and write outputs. The sockets used are:
 
 | Socket Path | Direction | Data |
 |---|---|---|
-| `/tmp/kuksa_pothole_left.sock` | KUKSA → Simulink | `"true"` / `"false"` |
-| `/tmp/kuksa_pothole_right.sock` | KUKSA → Simulink | `"true"` / `"false"` |
-| `/tmp/kuksa_steering_angle.sock` | KUKSA → Simulink | Numeric string (e.g. `"-15.5"`) |
-| `/tmp/kuksa_hazard_signal.sock` | Simulink → KUKSA | `"true"` / `"false"` |
+| `/tmp/kuksa_pothole_left.sock` | digital.auto sdv-runtime → Simulink | `"true"` / `"false"` |
+| `/tmp/kuksa_pothole_right.sock` | digital.auto sdv-runtime → Simulink | `"true"` / `"false"` |
+| `/tmp/kuksa_steering_angle.sock` | digital.auto sdv-runtime → Simulink | Numeric string (e.g. `"-15.5"`) |
+| `/tmp/kuksa_hazard_signal.sock` | Simulink → digital.auto sdv-runtime | `"true"` / `"false"` |
 
 ### Steering Angle Convention
 
@@ -172,11 +164,6 @@ This convention aligns with the VSS standard for
 ---
 
 ## Current Work: SDV Runtime Integration
-
-The next evolution of this demo is to replace the KUKSA Databroker and UDS
-socket bridge services with a direct integration to the **Eclipse SDV
-Runtime**. This aligns with the broader Eclipse SDV strategy and provides a
-more robust, scalable, and standardized architecture.
 
 **Status:** In Progress  
 **Target:** Integrate MATLAB/Simulink with Eclipse SDV Runtime for Pothole Alert demo
