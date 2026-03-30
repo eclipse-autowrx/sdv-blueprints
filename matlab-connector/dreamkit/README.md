@@ -19,6 +19,15 @@ components running on a dreamkit target (e.g. NVIDIA Jetson Orin).
 ## Demo Overview
 
 The demo implements a **Pothole Alert** system:
+The following diagram shows the complete system flow:
+
+<p align="center">
+  <img src="images/image.png" width="900"/>
+</p>
+
+<p align="center">
+  <em>Pothole Alert System Architecture – Dreamkit Integration</em>
+</p>
 
 1. A **simulation script** (`simulate_pothole.py`) running on the Jetson
    generates synthetic pothole data and publishes it to
