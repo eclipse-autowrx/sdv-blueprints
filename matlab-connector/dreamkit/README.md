@@ -12,7 +12,7 @@ The demo implements a **Pothole Alert** system:
 The following diagram shows the complete system flow:
 
 <p align="center">
-  <img src="images/image.png" width="900"/>
+  <img src="images/design.png" width="1200"/>
 </p>
 
 <p align="center">
@@ -69,7 +69,7 @@ dreamkit/
 
 - Python 3.12+
 - A running digital.auto sdv-runtime instance with custom VSS file
-  - Download the custom VSS file from the [Eclipse SDV Playground model](https://playground.digital.auto/model/6875ec635430c81ab197d7bf/api/covesa/Vehicle)
+  - Download the custom VSS file from the [Eclipse SDV Playground model](https://playground.digital.auto/model/6875ec635430c81ab197d7bf/api/covesa/Vehicle) (click Download as JSON button)
 
 ### Host Machine (Windows / MATLAB)
 
@@ -79,6 +79,18 @@ dreamkit/
   - MATLAB Coder
   - MATLAB Coder Support Package for NVIDIA Jetson and NVIDIA DRIVE Platforms
 - SSH access to the target machine
+
+---
+
+## Hardware Setup
+
+<p align="center">
+  <img src="images/hardware_snapshot.png" width="900"/>
+</p>
+
+<p align="center">
+  <em>Physical Hardware Setup: DreamKit with IVI displaying pothole detection, DreamPack with hazard light indicator, and Logitech Steering Wheel controller</em>
+</p>
 
 ---
 
@@ -152,12 +164,7 @@ This convention aligns with the VSS standard for
 
 ---
 
-## Current Work: SDV Runtime Integration
-
-**Status:** In Progress  
-**Target:** Integrate MATLAB/Simulink with Eclipse SDV Runtime for Pothole Alert demo
-
-### Key References for Integration
+## References
 
 -   [MATLAB Coder Support Package for NVIDIA Jetson and NVIDIA DRIVE Platforms](https://www.mathworks.com/help/coder/nvidia.html)
 -   [Eclipse SDV Runtime Documentation](https://docs.digital.auto/docs/epic/runtime/architecture/index.html)
