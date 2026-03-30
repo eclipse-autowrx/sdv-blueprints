@@ -1,0 +1,22 @@
+# Simulink generated artifacts
+slprj/
+**/slprj/
+*.slxc
+*.autosave
+PotholeAlertModel_ert_rtw/
+*_ert_rtw/
+
+# MATLAB temporary files
+*.asv
+*.mexa64
+*.mexw64
+*.mexmaci64
+
+# OS/editor clutter
+.DS_Store
+Thumbs.db
+# Python virtual environment
+venv/
+
+# VSS client history
+.vss_client_history
