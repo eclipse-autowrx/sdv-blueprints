@@ -1,13 +1,3 @@
-<!--
-  Copyright (c) 2025 Eclipse Foundation.
-
-  This program and the accompanying materials are made available under the
-  terms of the MIT License which is available at
-  https://opensource.org/licenses/MIT.
-
-  SPDX-License-Identifier: MIT
--->
-
 # Dreamkit – Pothole Alert Demo
 
 This folder contains a **playground prototype** that demonstrates how a
@@ -77,14 +67,13 @@ dreamkit/
 
 ### Dreamkit (Linux / NVIDIA Jetson)
 
-- Python 3.8+
-- [kuksa-client](https://pypi.org/project/kuksa-client/) – `pip install kuksa-client`
-- A running [digital.auto sdv-runtime](https://github.com/eclipse-kuksa/kuksa-) instance with custom VSS file
+- Python 3.12+
+- A running digital.auto sdv-runtime instance with custom VSS file
   - Download the custom VSS file from the [Eclipse SDV Playground model](https://playground.digital.auto/model/6875ec635430c81ab197d7bf/api/covesa/Vehicle)
 
 ### Host Machine (Windows / MATLAB)
 
-- MATLAB R2023b :
+- MATLAB R2025b :
   - Simulink
   - Simulink Coder
   - MATLAB Coder
@@ -97,11 +86,11 @@ dreamkit/
 
 ### 1. Start digital.auto sdv-runtime on the Target
 
-Make sure the digital.auto sdv-runtime is running and accessible on port 55555.
+The digital.auto sdv-runtime docker container automatically starts after boot in Dreamkit.
 
 ### 2. Deploy and Start the Bridge Services
 
-Copy the `c_caller/` folder to the target, then start all three services:
+Copy the `c_caller/` folder to the Dreamkit, then start all three services:
 
 ```bash
 python3 pothole_feeder.py &
@@ -168,16 +157,10 @@ This convention aligns with the VSS standard for
 **Status:** In Progress  
 **Target:** Integrate MATLAB/Simulink with Eclipse SDV Runtime for Pothole Alert demo
 
-### Target Architecture (Demo v2 – SDV Runtime)
-
-**Detailed architecture diagram:** See [mathwork.drawio](docs/mathwork.drawio) for the complete system design visualization.
-
 ### Key References for Integration
 
 -   [MATLAB Coder Support Package for NVIDIA Jetson and NVIDIA DRIVE Platforms](https://www.mathworks.com/help/coder/nvidia.html)
--   [Eclipse SDV Runtime Documentation](https://docs.digital.auto/)
--   [Eclipse SDV Playground Model](https://playground.digital.auto/model/6875ec635430c81ab197d7bf/library/prototype/68edcf3fd327158aa967d7ff/dashboard?search=steeringw)
-    -   Model ID: `Runtime-dreamKIT-c028e76a`
+-   [Eclipse SDV Runtime Documentation](https://docs.digital.auto/docs/epic/runtime/architecture/index.html)
 -   [Pothole Alert Prototype](https://playground.digital.auto/model/69a686b45ee0670962b69bb2/library/prototype/69c623b738bb8e98f0a9d41d/view)
 
 ---
